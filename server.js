@@ -47,7 +47,7 @@ server.get('/getUserPosts/:id', getUserPostsHandler)
 server.get('/getPostById/:id', getPostByIdHandler)
 
 server.post('/addUsers', addUsersHandler)
-server.get('/getUsers', getUsersHandler)
+// server.get('/getUsers', getUsersHandler)
 server.post('/addPost', savePostHandler)
 server.get('/getAllPosts', getAllPostsHandler)
 
@@ -77,16 +77,16 @@ function addUsersHandler(req, res) {
 
 
 
-function getUsersHandler(req, res) {
-    const sql = `SELECT * FROM Users;`
-    client.query(sql)
-        .then((data) => {
-            res.send(data.rows);
-        })
-        .catch(error => {
-            res.send('error');
-        });
-}
+// function getUsersHandler(req, res) {
+//     const sql = `SELECT * FROM Users;`
+//     client.query(sql)
+//         .then((data) => {
+//             res.send(data.rows);
+//         })
+//         .catch(error => {
+//             res.send('error');
+//         });
+// }
 
 function savePostHandler(req, res) {
     const Post = req.body;
@@ -105,7 +105,7 @@ function savePostHandler(req, res) {
 // (GET) /getAllPosts: get list of all blog posts created by all users. (Database Join between Posts and User )
 //  (postId ,userId ,imageURL ,title ,content ,numberOfLikes,Created_at , userFullName , imageURL AS userImageURL) sorted by created_at
 function getAllPostsHandler(req, res) {
-    const sql = 'SELECT Users.userId ,Users.userFullName, Users.imageURL , Posts.postId  , Posts.imageURL , Posts.title , Posts.content  , Posts.numberOfLikes , Posts.Created_at  FROM Users INNER JOIN Posts ON Users.userId=Posts.userId  ORDER BY Created_at DESC ;'
+    const sql = 'SELECT Posts.postId ,Users.userId ,Users.userFullName, Users.imageURL , Posts.postId  , Posts.imageURL , Posts.title , Posts.content  , Posts.numberOfLikes , Posts.Created_at  FROM Users INNER JOIN Posts ON Users.userId=Posts.userId  ORDER BY Created_at DESC ;'
     client.query(sql)
         .then((data) => {
             res.send(data.rows);
@@ -118,10 +118,19 @@ function getAllPostsHandler(req, res) {
 
 function getUserPostsHandler(req, res) {
     const id = req.params.id;
-    const sql = `SELECT * FROM Posts
-    INNER JOIN Users ON Posts.userId =Users.userId 
-    WHERE Posts.userId=${id}
-    ORDER BY Posts.Created_at DESC;`;
+    const sql = `SELECT Users.userId ,
+                        Posts.postId ,
+                        Users.userFullName ,
+                        Users.imageURL AS userImageURL ,
+                        Posts.imageURL,
+                        Posts.title ,
+                        Posts.content ,
+                        Posts.numberOfLikes ,
+                        Posts.Created_at 
+                FROM Posts
+                INNER JOIN Users ON Posts.userId =Users.userId 
+                WHERE Posts.userId=${id}
+                ORDER BY Posts.Created_at DESC;`;
 
     client.query(sql)
         .then((data) => {
@@ -134,7 +143,18 @@ function getUserPostsHandler(req, res) {
 
 function getPostByIdHandler(req, res) {
     const id = req.params.id;
-    const sql = `SELECT * FROM Posts WHERE postId=${id}`;
+    const sql = `SELECT Users.userId ,
+                        Posts.postId ,
+                        Users.userFullName ,
+                        Users.imageURL AS userImageURL ,
+                        Posts.imageURL,
+                        Posts.title ,
+                        Posts.content ,
+                        Posts.numberOfLikes ,
+                        Posts.Created_at  
+                FROM Posts 
+                INNER JOIN Users ON Posts.userId = Users.userId
+                WHERE postId=${id}`;
     client.query(sql)
         .then((data) => {
             res.send(data.rows);
