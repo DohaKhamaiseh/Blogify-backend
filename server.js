@@ -31,7 +31,6 @@ server.get('/', startHandler)
 server.get('/home', homeHandler)
 server.get('/getUserPosts/:id', getUserPostsHandler)
 server.get('/getPostById/:id', getPostByIdHandler)
-server.get('/getAllComment/:id', getAllCommentHandler)
 
 // Functions Handlers
 
@@ -45,12 +44,10 @@ function homeHandler(req, res) {
 
 function getUserPostsHandler(req, res) {
     const id = req.params.id;
-    const sql = `SELECT Posts.postId, Posts.userId, Posts.imageURL, Posts.title, Posts.content,
-    Posts.numberOfLikes,Posts.Created_at,User.userFullName,User.userImageURL
-    FROM Posts 
+    const sql = `SELECT * FROM Posts
+    INNER JOIN Users ON Posts.userId =Users.userId 
     WHERE Posts.userId=${id}
-    INNER JOIN User ON Posts.userId=User.userId
-    ORDER BY Posts.Created_at DESC`;
+    ORDER BY Posts.Created_at DESC;`;
 
     client.query(sql)
         .then((data) => {
@@ -71,10 +68,6 @@ function getPostByIdHandler(req, res) {
         .catch((err) => {
             errorHandler(err, req, res);
         })
-
-}
-
-function getAllCommentHandler(req,res){
 
 }
 
