@@ -42,14 +42,14 @@ server.use(bodyParser.json())
 //Routes
 server.get('/', startHandler)
 server.get('/home', homeHandler)
+
+server.get('/getUserPosts/:id', getUserPostsHandler)
+server.get('/getPostById/:id', getPostByIdHandler)
+
 server.post('/addUsers', addUsersHandler)
 server.get('/getUsers', getUsersHandler)
-server.post('/addPost',savePostHandler)
+server.post('/addPost', savePostHandler)
 server.get('/getAllPosts', getAllPostsHandler)
-
-
-
-
 
 // Functions Handlers
 
@@ -63,20 +63,19 @@ function homeHandler(req, res) {
 
 function addUsersHandler(req, res) {
     const user = req.body;
-    //console.log(user);
-
-    const sql = `INSERT INTO Users (userFullName, dateOfBirth, email, userPassword, imageURL, bio) VALUES ($1, $2, $3,$4,$5,$6) RETURNING *` ;
-  const   values =[user.userFullName,user.dateOfBirth,user.email,user.userPassword,user.imageURL, user.bio];
-
-    client.query(sql,values)
+    const sql = `INSERT INTO Users (userFullName, dateOfBirth, email, userPassword, imageURL, bio) VALUES ($1, $2, $3,$4,$5,$6) RETURNING *`;
+    const values = [user.userFullName, user.dateOfBirth, user.email, user.userPassword, user.imageURL, user.bio];
+    client.query(sql, values)
         .then((data) => {
             res.send(data.rows);
         })
         .catch(error => {
             res.send('error');
         });
-
 }
+
+
+
 
 function getUsersHandler(req, res) {
     const sql = `SELECT * FROM Users;`
@@ -93,7 +92,6 @@ function savePostHandler(req, res) {
     const Post = req.body;
     const sql = `INSERT INTO Posts (userId, title, content,imageURL) VALUES ($1, $2, $3,$4) RETURNING *;`
     const values = [Post.userId, Post.title, Post.content, Post.imageURL];
-
     client.query(sql, values)
         .then((data) => {
             res.send("your data was added !");
@@ -115,6 +113,36 @@ function getAllPostsHandler(req, res) {
         .catch(error => {
             res.send('error');
         });
+}
+
+
+function getUserPostsHandler(req, res) {
+    const id = req.params.id;
+    const sql = `SELECT * FROM Posts
+    INNER JOIN Users ON Posts.userId =Users.userId 
+    WHERE Posts.userId=${id}
+    ORDER BY Posts.Created_at DESC;`;
+
+    client.query(sql)
+        .then((data) => {
+            res.send(data.rows);
+        })
+        .catch((err) => {
+            errorHandler(err, req, res);
+        })
+}
+
+function getPostByIdHandler(req, res) {
+    const id = req.params.id;
+    const sql = `SELECT * FROM Posts WHERE postId=${id}`;
+    client.query(sql)
+        .then((data) => {
+            res.send(data.rows);
+        })
+        .catch((err) => {
+            errorHandler(err, req, res);
+        })
+
 }
 
 
