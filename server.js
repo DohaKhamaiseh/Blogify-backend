@@ -44,7 +44,7 @@ server.get('/', startHandler)
 server.get('/home', homeHandler)
 server.post('/addUsers', addUsersHandler)
 server.get('/getUsers', getUsersHandler)
-server.post('/addPost', addPostHandler)
+server.post('/addPost',savePostHandler)
 server.get('/getAllPosts', getAllPostsHandler)
 
 
@@ -65,10 +65,10 @@ function addUsersHandler(req, res) {
     const user = req.body;
     //console.log(user);
 
-    const sql = `INSERT INTO Users (userFullName, dateOfBirth, email, userPassword, imageURL, bio) VALUES ('${ user.userFullName}',) ` ;
-    user.userFullName,user.dateOfBirth,user.email,user.userPassword,user.imageURL, user.bio];
+    const sql = `INSERT INTO Users (userFullName, dateOfBirth, email, userPassword, imageURL, bio) VALUES ($1, $2, $3,$4,$5,$6) RETURNING *` ;
+  const   values =[user.userFullName,user.dateOfBirth,user.email,user.userPassword,user.imageURL, user.bio];
 
-    client.query(sql)
+    client.query(sql,values)
         .then((data) => {
             res.send(data.rows);
         })
@@ -89,38 +89,6 @@ function getUsersHandler(req, res) {
         });
 }
 
-function addPostHandler(req, res) {
-    const post = req.body;
-    const sql = `INSERT INTO Posts (userId, title, content,imageURL)  
-VALUES ('${post.userId}','${post.title}','${post.content}','${post.imageURL}') ;`
-    client.query(sql)
-        .then((data) => {
-            res.send(data.rows);
-        })
-        .catch(error => {
-            res.send('error');
-        });
-}
-// (GET) /getAllPosts: get list of all blog posts created by all users. (Database Join between Posts and User )
-//  (postId ,userId ,imageURL ,title ,content ,numberOfLikes,Created_at , userFullName , imageURL AS userImageURL) sorted by created_at
-function getAllPostsHandler(req, res) {
-    const sql = 'SELECT Users.userId ,Users.userFullName, Users.imageURL , Posts.postId  , Posts.imageURL , Posts.title , Posts.content  , Posts.numberOfLikes , Posts.Created_at  FROM Users INNER JOIN Posts ON Users.userId=Posts.userId  ORDER BY Created_at DESC ;'
-    client.query(sql)
-        .then((data) => {
-            res.send(data.rows);
-        })
-        .catch(error => {
-            res.send('error');
-        });
-}
-
-
-
-
-
-
-
-
 function savePostHandler(req, res) {
     const Post = req.body;
     const sql = `INSERT INTO Posts (userId, title, content,imageURL) VALUES ($1, $2, $3,$4) RETURNING *;`
@@ -133,6 +101,19 @@ function savePostHandler(req, res) {
         .catch(error => {
             // console.log(error);
             errorHandler(error, req, res);
+        });
+}
+
+// (GET) /getAllPosts: get list of all blog posts created by all users. (Database Join between Posts and User )
+//  (postId ,userId ,imageURL ,title ,content ,numberOfLikes,Created_at , userFullName , imageURL AS userImageURL) sorted by created_at
+function getAllPostsHandler(req, res) {
+    const sql = 'SELECT Users.userId ,Users.userFullName, Users.imageURL , Posts.postId  , Posts.imageURL , Posts.title , Posts.content  , Posts.numberOfLikes , Posts.Created_at  FROM Users INNER JOIN Posts ON Users.userId=Posts.userId  ORDER BY Created_at DESC ;'
+    client.query(sql)
+        .then((data) => {
+            res.send(data.rows);
+        })
+        .catch(error => {
+            res.send('error');
         });
 }
 
