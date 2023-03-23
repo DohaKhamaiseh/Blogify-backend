@@ -12,10 +12,18 @@ const pg = require('pg');
 var bodyParser = require('body-parser')
 
 
+
 const server = express();
 
 //server open for all clients requests
 server.use(cors());
+
+var bodyParser = require('body-parser')
+// parse application/x-www-form-urlencoded
+server.use(bodyParser.urlencoded({ extended: false }))
+// parse application/json
+server.use(bodyParser.json())
+
 
 // Load the environment variables into your Node.js
 require('dotenv').config();
@@ -34,7 +42,12 @@ server.use(bodyParser.json())
 //Routes
 server.get('/', startHandler)
 server.get('/home', homeHandler)
-server.post('/savePost', savePostHandler)
+server.post('/addUsers', addUsersHandler)
+server.get('/getUsers', getUsersHandler)
+server.post('/addPost', addPostHandler)
+server.get('/getAllPosts', getAllPostsHandler)
+
+
 
 
 
@@ -47,6 +60,65 @@ function startHandler(req, res) {
 function homeHandler(req, res) {
     res.send("Hello from the home route");
 }
+
+function addUsersHandler(req, res) {
+    const user = req.body;
+    //console.log(user);
+
+    const sql = `INSERT INTO Users (userFullName, dateOfBirth, email, userPassword, imageURL, bio) VALUES ('${ user.userFullName}',) ` ;
+    user.userFullName,user.dateOfBirth,user.email,user.userPassword,user.imageURL, user.bio];
+
+    client.query(sql)
+        .then((data) => {
+            res.send(data.rows);
+        })
+        .catch(error => {
+            res.send('error');
+        });
+
+}
+
+function getUsersHandler(req, res) {
+    const sql = `SELECT * FROM Users;`
+    client.query(sql)
+        .then((data) => {
+            res.send(data.rows);
+        })
+        .catch(error => {
+            res.send('error');
+        });
+}
+
+function addPostHandler(req, res) {
+    const post = req.body;
+    const sql = `INSERT INTO Posts (userId, title, content,imageURL)  
+VALUES ('${post.userId}','${post.title}','${post.content}','${post.imageURL}') ;`
+    client.query(sql)
+        .then((data) => {
+            res.send(data.rows);
+        })
+        .catch(error => {
+            res.send('error');
+        });
+}
+// (GET) /getAllPosts: get list of all blog posts created by all users. (Database Join between Posts and User )
+//  (postId ,userId ,imageURL ,title ,content ,numberOfLikes,Created_at , userFullName , imageURL AS userImageURL) sorted by created_at
+function getAllPostsHandler(req, res) {
+    const sql = 'SELECT Users.userId ,Users.userFullName, Users.imageURL , Posts.postId  , Posts.imageURL , Posts.title , Posts.content  , Posts.numberOfLikes , Posts.Created_at  FROM Users INNER JOIN Posts ON Users.userId=Posts.userId  ORDER BY Created_at DESC ;'
+    client.query(sql)
+        .then((data) => {
+            res.send(data.rows);
+        })
+        .catch(error => {
+            res.send('error');
+        });
+}
+
+
+
+
+
+
 
 
 function savePostHandler(req, res) {
