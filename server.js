@@ -41,9 +41,16 @@ server.post('/addUsers', addUsersHandler)
 // server.get('/getUsers', getUsersHandler)
 server.post('/addPost', savePostHandler)
 server.get('/getAllPosts', getAllPostsHandler)
+server.put('/updateComment/:id',updateCommentId)
 server.get('/getAllComment/:id', getAllCommentHandler)
 server.post('/saveComment', saveCommentHandler)
 server.delete('/deleteComment/:id', deleteCommentHandler)
+//API Route
+server.get('/topHeadlines',topHeadlinesAPIHandler)
+
+
+
+
 
 // Functions Handlers
 
@@ -67,8 +74,6 @@ function addUsersHandler(req, res) {
             res.send('error');
         });
 }
-
-
 
 
 // function getUsersHandler(req, res) {
@@ -159,19 +164,66 @@ function getPostByIdHandler(req, res) {
 
 }
 
+// NewsAPI  constructor 
+
+function News (title,description,url,urlToImage)
+{
+this.title = title ;
+this.description = description ;
+this.url = url ;
+this.urlToImage = urlToImage ;
+}
+
+function updateCommentId(req, res) {
+    const id = req.params.id;
+    const comm = req.body.Content;
+    const sql = `UPDATE Comments SET Created_at = CURRENT_DATE, Content = $1 WHERE commentId = $2`;
+    const values = [comm, id];
+  
+    client
+      .query(sql, values)
+      .then((data) => {
+        res.send(data.rows);
+      })
+      .catch((err) => {
+        errorHandler(err, req, res);
+      });
+  }
+
+
+  function topHeadlinesAPIHandler (req,res){
+
+    try {
+        const APIKey = process.env.news_API_key;
+        const URL = `https://newsapi.org/v2/top-headlines?country=us&apiKey=${APIKey}`;
+        axios.get(URL)
+          .then((newsResult) => {
+            let mapResult = newsResult.data.articles.map((item) => {
+              return new News(item.title, item.description, item.url, item.urlToImage);
+            });
+            res.send(mapResult);
+          })
+          .catch((err) => {
+            console.log("sorry", err);
+            res.status(500).send(err);
+          })
+      }
+    
+      catch (error) {
+        errorHandler(error, req, res);
+      }
+}
+
+
 function getAllCommentHandler(req, res) {
     const id = req.params.id;
-    const sql = `SELECT Comments.commentId,
-                        Comments.postId,
-                        Comments.userId,
-                        Users.userFullName,
-                        Users.imageURL AS userImageURL,
+    const sql = `SELECT Comments.userId,
                         Comments.Content,
                         Comments.Created_at
                 FROM Comments
                 INNER JOIN Users ON Comments.userId = Users.userId
                 WHERE Comments.postId=${id}
-                ORDER BY Comments.Created_at ASC;`;
+                ORDER BY Comments.Created_at DESC;`;
     client.query(sql)
         .then((data) => {
             res.send(data.rows);
@@ -212,8 +264,8 @@ function deleteCommentHandler(req, res) {
     else {
         res.send("Id Must Be Numaric");
     }
-}
 
+}
 
 // 404 errors
 server.get('*', (req, res) => {
