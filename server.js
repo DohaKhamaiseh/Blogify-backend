@@ -42,6 +42,7 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 //Routes
+
 server.get('/', startHandler)
 server.get('/home', homeHandler)
 server.get('/getUserPosts/:id', getUserPostsHandler)
@@ -50,12 +51,12 @@ server.post('/addUsers', addUsersHandler)
 // server.get('/getUsers', getUsersHandler)
 server.post('/addPost', savePostHandler)
 server.get('/getAllPosts', getAllPostsHandler)
-server.put('/updateComment/:id',updateCommentId)
+server.put('/updateComment/:id', updateCommentIdHandler)
 server.get('/getAllComment/:id', getAllCommentHandler)
 server.post('/saveComment', saveCommentHandler)
 server.delete('/deleteComment/:id', deleteCommentHandler)
 //API Route
-server.get('/topHeadlines',topHeadlinesAPIHandler)
+server.get('/topHeadlines', topHeadlinesAPIHandler)
 server.put('/updatepost/:id', updatePostHandler)
 server.delete('/deletepost/:id', deletePostHandler)
 server.post('/increasepostlikes/:id', increaseLikesHandler)
@@ -124,7 +125,6 @@ function savePostHandler(req, res) {
             res.send("your data was added !");
         })
         .catch(error => {
-            // console.log(error);
             errorHandler(error, req, res);
         });
 }
@@ -205,7 +205,6 @@ function updatePostHandler(req, res) {
                 res.status(200).send(data.rows);
             })
             .catch(error => {
-                // console.log(error);
                 errorHandler(error, req, res);
             });
     }
@@ -233,7 +232,6 @@ function increaseLikesHandler(req, res) {
     const id = req.params.id;
     if (!isNaN(id)) {
         const sql = `UPDATE posts SET numberOfLikes = numberOfLikes + 1 WHERE postId = ${id};`
-        console.log(sql);
         client.query(sql)
             .then((data) => {
                 res.send("increased successfully");
@@ -254,7 +252,6 @@ function decreesLikesHandler(req, res) {
     const id = req.params.id;
     if (!isNaN(id)) {
         const sql = `UPDATE posts SET numberOfLikes = numberOfLikes - 1 WHERE postId = ${id};`
-        console.log(sql);
         client.query(sql)
             .then((data) => {
                 res.send("decreesed successfully");
@@ -272,57 +269,64 @@ function decreesLikesHandler(req, res) {
 
 // NewsAPI  constructor 
 
-function News (title,description,url,urlToImage)
-{
-this.title = title ;
-this.description = description ;
-this.url = url ;
-this.urlToImage = urlToImage ;
+function News(title, description, url, urlToImage) {
+    this.title = title;
+    this.description = description;
+    this.url = url;
+    this.urlToImage = urlToImage;
 }
 
-function updateCommentId(req, res) {
+function updateCommentIdHandler(req, res) {
     const id = req.params.id;
-    const comm = req.body.Content;
-    const sql = `UPDATE Comments SET Created_at = CURRENT_DATE, Content = $1 WHERE commentId = $2`;
-    const values = [comm, id];
-  
-    client
-      .query(sql, values)
-      .then((data) => {
-        res.send(data.rows);
-      })
-      .catch((err) => {
-        errorHandler(err, req, res);
-      });
-  }
-  
-  function topHeadlinesAPIHandler (req,res){
+    if (!isNaN(id)) {
+        const comm = req.body.Content;
+        const sql = `UPDATE Comments SET Created_at = CURRENT_TIMESTAMP, Content = $1 WHERE commentId = $2 RETURNING *;`;
+        const values = [comm, id];
+        client.query(sql, values)
+            .then((data) => {
+                res.status(200).send(data.rows);
+            })
+            .catch(error => {
+                errorHandler(error, req, res);
+            });
+    }
+    else {
+        res.send("Id Must Be Numaric");
+    }
+}
+
+function topHeadlinesAPIHandler(req, res) {
 
     try {
-        const APIKey = process.env.news_API_key;
+        const APIKey = process.env.NEWS_API_KEY;
         const URL = `https://newsapi.org/v2/top-headlines?country=us&apiKey=${APIKey}`;
         axios.get(URL)
-          .then((newsResult) => {
-            let mapResult = newsResult.data.articles.map((item) => {
-              return new News(item.title, item.description, item.url, item.urlToImage);
-            });
-            res.send(mapResult);
-          })
-          .catch((err) => {
-            console.log("sorry", err);
-            res.status(500).send(err);
-          })
-      }
-    
-      catch (error) {
+            .then((newsResult) => {
+                let mapResult = newsResult.data.articles.map((item) => {
+                    return new News(item.title, item.description, item.url, item.urlToImage);
+                });
+                res.send(mapResult);
+            })
+            .catch((err) => {
+                console.log("sorry", err);
+                res.status(500).send(err);
+            })
+    }
+
+    catch (error) {
         errorHandler(error, req, res);
-      }
+    }
 }
+
 
 function getAllCommentHandler(req, res) {
     const id = req.params.id;
-    const sql = `SELECT Comments.userId,
+    const sql = `SELECT Comments.commentId,
+                        Comments.postId,
+                        Comments.userId,
                         Comments.Content,
+                        Users.userFullName,
+                        Users.imageURL AS userImageURL,
                         Comments.Created_at
                 FROM Comments
                 INNER JOIN Users ON Comments.userId = Users.userId
@@ -411,7 +415,6 @@ function updateProfilHandler(req, res) {
                 res.status(200).send(data.rows);
             })
             .catch(error => {
-                // console.log(error);
                 errorHandler(error, req, res);
             });
     }
@@ -433,15 +436,15 @@ function getUserIdByEmailHandler(req, res) {
         })
 }
 
-server.get('/generateByAi', async function(req, res) {
+server.get('/generateByAi', async function (req, res) {
     const prompt = `create for me blog post about ${req.body.title} and do not start with Sure`;
     openai.createCompletion({
         model: "text-davinci-003",
         prompt: prompt,
         max_tokens: 2048,
-    }).then(function(completion) {
+    }).then(function (completion) {
         res.send(completion.data.choices[0].text);
-    }).catch(function(err) {
+    }).catch(function (err) {
         errorHandler(err, req, res);
     });
 });
