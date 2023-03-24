@@ -50,6 +50,22 @@ server.post('/addUsers', addUsersHandler)
 // server.get('/getUsers', getUsersHandler)
 server.post('/addPost', savePostHandler)
 server.get('/getAllPosts', getAllPostsHandler)
+server.put('/updateComment/:id',updateCommentId)
+
+
+//API Route
+server.get('/topHeadlines',topHeadlinesAPIHandler)
+
+// NewsAPI  constructor 
+
+function News (title,description,url,urlToImage)
+{
+this.title = title ;
+this.description = description ;
+this.url = url ;
+this.urlToImage = urlToImage ;
+}
+
 
 // Functions Handlers
 
@@ -163,6 +179,45 @@ function getPostByIdHandler(req, res) {
             errorHandler(err, req, res);
         })
 
+}
+
+function updateCommentId(req, res) {
+    const id = req.params.id;
+    const comm = req.body.Content;
+    const sql = `UPDATE Comments SET Created_at = CURRENT_DATE, Content = $1 WHERE commentId = $2`;
+    const values = [comm, id];
+  
+    client
+      .query(sql, values)
+      .then((data) => {
+        res.send(data.rows);
+      })
+      .catch((err) => {
+        errorHandler(err, req, res);
+      });
+  }
+
+  function topHeadlinesAPIHandler (req,res){
+
+    try {
+        const APIKey = process.env.news_API_key;
+        const URL = `https://newsapi.org/v2/top-headlines?country=us&apiKey=${APIKey}`;
+        axios.get(URL)
+          .then((newsResult) => {
+            let mapResult = newsResult.data.articles.map((item) => {
+              return new News(item.title, item.description, item.url, item.urlToImage);
+            });
+            res.send(mapResult);
+          })
+          .catch((err) => {
+            console.log("sorry", err);
+            res.status(500).send(err);
+          })
+      }
+    
+      catch (error) {
+        errorHandler(error, req, res);
+      }
 }
 
 
