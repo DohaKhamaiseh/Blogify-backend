@@ -33,6 +33,7 @@ To begin working on the backend side of a project, follow these steps:
   PORT=3000
   DATABASE_URL=postgres://localhost:5432/blogify
   OPENAI_API_KEY="INSERT YOUR OPENAI API KEY HERE"
+  NEWS_API_KEY="INSERT YOUR API KEY HERE"
   ````
 
 * prepare the Database server using this command :
