@@ -11,6 +11,7 @@ const pg = require('pg');
 
 var bodyParser = require('body-parser')
 
+const { Configuration, OpenAIApi } = require("openai");
 
 
 const server = express();
@@ -39,6 +40,13 @@ server.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
 server.use(bodyParser.json())
 
+
+//OpenAI API Configuration
+const configuration = new Configuration({
+    apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
+
 //Routes
 server.get('/', startHandler)
 server.get('/home', homeHandler)
@@ -50,6 +58,13 @@ server.post('/addUsers', addUsersHandler)
 // server.get('/getUsers', getUsersHandler)
 server.post('/addPost', savePostHandler)
 server.get('/getAllPosts', getAllPostsHandler)
+server.put('/updatepost/:id', updatePostHandler)
+server.delete('/deletepost/:id', deletePostHandler)
+server.post('/increasepostlikes/:id', increaseLikesHandler)
+server.post('/decreespostlikes/:id', decreesLikesHandler)
+server.get('/getProfileById/:id', getProfileByIdHandler)
+server.put('/updateprofil/:id', updateProfilHandler)
+server.get('/getUserIdByEmail', getUserIdByEmailHandler)
 
 // Functions Handlers
 
@@ -63,17 +78,28 @@ function homeHandler(req, res) {
 
 function addUsersHandler(req, res) {
     const user = req.body;
-    const sql = `INSERT INTO Users (userFullName, dateOfBirth, email, userPassword, imageURL, bio) VALUES ($1, $2, $3,$4,$5,$6) RETURNING *`;
-    const values = [user.userFullName, user.dateOfBirth, user.email, user.userPassword, user.imageURL, user.bio];
-    client.query(sql, values)
-        .then((data) => {
-            res.send(data.rows);
+    const checkEmailSql = `SELECT userId FROM Users WHERE email=$1;`;
+    const checkEmailValues = [user.email];
+    client.query(checkEmailSql, checkEmailValues)
+        .then((result) => {
+            if (result.rowCount > 0) {
+                res.status(400).send("Email already exists");
+            } else {
+                const sql = `INSERT INTO Users (userFullName, email) VALUES ($1, $2) RETURNING *;`;
+                const values = [user.userFullName, user.email];
+                client.query(sql, values)
+                    .then((data) => {
+                        res.send("Users Saved successfully");
+                    })
+                    .catch(error => {
+                        errorHandler(error, req, res);
+                    });
+            }
         })
-        .catch(error => {
-            res.send('error');
+        .catch((error) => {
+            errorHandler(error, req, res);
         });
 }
-
 
 
 
@@ -101,6 +127,8 @@ function savePostHandler(req, res) {
             errorHandler(error, req, res);
         });
 }
+
+
 
 // (GET) /getAllPosts: get list of all blog posts created by all users. (Database Join between Posts and User )
 //  (postId ,userId ,imageURL ,title ,content ,numberOfLikes,Created_at , userFullName , imageURL AS userImageURL) sorted by created_at
@@ -164,6 +192,153 @@ function getPostByIdHandler(req, res) {
         })
 
 }
+
+function updatePostHandler(req, res) {
+    const id = req.params.id;
+    if (!isNaN(id)) {
+        const Post = req.body;
+        const sql = `UPDATE Posts SET title =$1 , content  =$2 , imageURL =$3 WHERE postId = ${id} RETURNING *;`
+        const values = [Post.title, Post.content, Post.imageURL];
+
+        client.query(sql, values)
+            .then((data) => {
+                res.status(200).send(data.rows);
+            })
+            .catch(error => {
+                // console.log(error);
+                errorHandler(error, req, res);
+            });
+    }
+    else {
+        res.send("Id Must Be Numaric");
+    }
+}
+
+function deletePostHandler(req, res) {
+    const postId = req.params.id;
+    if (!isNaN(postId)) {
+        const deleteCommentsQuery = `DELETE FROM Comments WHERE postId = $1;`;
+        const deletePostQuery = `DELETE FROM Posts WHERE postId = $1;`;
+        client.query(deleteCommentsQuery, [postId])
+            .then(() => client.query(deletePostQuery, [postId]))
+            .then(() => res.send("Post and associated comments deleted successfully."))
+            .catch((err) => errorHandler(err, req, res));
+    } else {
+        res.send("Id Must Be Numeric");
+    }
+
+}
+
+function increaseLikesHandler(req, res) {
+    const id = req.params.id;
+    if (!isNaN(id)) {
+        const sql = `UPDATE posts SET numberOfLikes = numberOfLikes + 1 WHERE postId = ${id};`
+        console.log(sql);
+        client.query(sql)
+            .then((data) => {
+                res.send("increased successfully");
+            })
+            .catch(error => {
+                errorHandler(error, req, res);
+            });
+
+
+    }
+    else {
+        res.send("Id Must Be Numaric");
+    }
+}
+function decreesLikesHandler(req, res) {
+    const id = req.params.id;
+    if (!isNaN(id)) {
+        const sql = `UPDATE posts SET numberOfLikes = numberOfLikes - 1 WHERE postId = ${id};`
+        console.log(sql);
+        client.query(sql)
+            .then((data) => {
+                res.send("decreesed successfully");
+            })
+            .catch(error => {
+                errorHandler(error, req, res);
+            });
+
+
+    }
+    else {
+        res.send("Id Must Be Numaric");
+    }
+}
+
+
+function getProfileByIdHandler(req, res) {
+    const id = req.params.id;
+    if (!isNaN(id)) {
+        const sql = `SELECT Users.userFullName  ,
+                        Users.dateOfBirth  ,
+                        Users.email ,
+                        Users.imageURL AS userImageURL ,
+                        Users.bio 
+                FROM Users 
+                WHERE userId =${id}`;
+        client.query(sql)
+            .then((data) => {
+                res.send(data.rows);
+            })
+            .catch((err) => {
+                errorHandler(err, req, res);
+            })
+
+    }
+    else {
+        res.send("Id Must Be Numaric");
+    }
+
+}
+function updateProfilHandler(req, res) {
+    const id = req.params.id;
+    if (!isNaN(id)) {
+        const User = req.body;
+        const sql = `UPDATE Users SET userFullName =$1 , dateOfBirth  =$2 , imageURL =$3,bio=$4 WHERE userId = ${id} RETURNING *;`
+        const values = [User.userFullName, User.dateOfBirth, User.imageURL, User.bio];
+
+        client.query(sql, values)
+            .then((data) => {
+                res.status(200).send(data.rows);
+            })
+            .catch(error => {
+                // console.log(error);
+                errorHandler(error, req, res);
+            });
+    }
+    else {
+        res.send("Id Must Be Numaric");
+    }
+}
+
+function getUserIdByEmailHandler(req, res) {
+    const email = req.body.email;
+    const sql = `SELECT userId FROM Users WHERE email = '${email}'`;
+    client.query(sql)
+        .then((data) => {
+            res.send(data.rows);
+        })
+        .catch((err) => {
+            errorHandler(err, req, res);
+        })
+}
+
+
+server.get('/generateByAi', async function(req, res) {
+    const prompt = `create for me blog post about ${req.body.title} and do not start with Sure`;
+    openai.createCompletion({
+        model: "text-davinci-003",
+        prompt: prompt,
+        max_tokens: 2048,
+    }).then(function(completion) {
+        res.send(completion.data.choices[0].text);
+    }).catch(function(err) {
+        errorHandler(err, req, res);
+    });
+});
 
 
 // 404 errors
