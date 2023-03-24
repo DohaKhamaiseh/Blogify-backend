@@ -44,14 +44,18 @@ const openai = new OpenAIApi(configuration);
 //Routes
 server.get('/', startHandler)
 server.get('/home', homeHandler)
-
 server.get('/getUserPosts/:id', getUserPostsHandler)
 server.get('/getPostById/:id', getPostByIdHandler)
-
 server.post('/addUsers', addUsersHandler)
 // server.get('/getUsers', getUsersHandler)
 server.post('/addPost', savePostHandler)
 server.get('/getAllPosts', getAllPostsHandler)
+server.put('/updateComment/:id',updateCommentId)
+server.get('/getAllComment/:id', getAllCommentHandler)
+server.post('/saveComment', saveCommentHandler)
+server.delete('/deleteComment/:id', deleteCommentHandler)
+//API Route
+server.get('/topHeadlines',topHeadlinesAPIHandler)
 server.put('/updatepost/:id', updatePostHandler)
 server.delete('/deletepost/:id', deletePostHandler)
 server.post('/increasepostlikes/:id', increaseLikesHandler)
@@ -59,6 +63,7 @@ server.post('/decreespostlikes/:id', decreesLikesHandler)
 server.get('/getProfileById/:id', getProfileByIdHandler)
 server.put('/updateprofil/:id', updateProfilHandler)
 server.get('/getUserIdByEmail', getUserIdByEmailHandler)
+// server.get('/generateByAi',) exist at the bottom
 
 
 
@@ -188,7 +193,6 @@ function getPostByIdHandler(req, res) {
         })
 
 }
-
 function updatePostHandler(req, res) {
     const id = req.params.id;
     if (!isNaN(id)) {
@@ -244,6 +248,8 @@ function increaseLikesHandler(req, res) {
         res.send("Id Must Be Numaric");
     }
 }
+
+
 function decreesLikesHandler(req, res) {
     const id = req.params.id;
     if (!isNaN(id)) {
@@ -264,6 +270,88 @@ function decreesLikesHandler(req, res) {
     }
 }
 
+// NewsAPI  constructor 
+
+function News (title,description,url,urlToImage)
+{
+this.title = title ;
+this.description = description ;
+this.url = url ;
+this.urlToImage = urlToImage ;
+}
+
+function updateCommentId(req, res) {
+    const id = req.params.id;
+    const comm = req.body.Content;
+    const sql = `UPDATE Comments SET Created_at = CURRENT_DATE, Content = $1 WHERE commentId = $2`;
+    const values = [comm, id];
+  
+    client
+      .query(sql, values)
+      .then((data) => {
+        res.send(data.rows);
+      })
+      .catch((err) => {
+        errorHandler(err, req, res);
+      });
+  }
+  
+  function topHeadlinesAPIHandler (req,res){
+
+    try {
+        const APIKey = process.env.news_API_key;
+        const URL = `https://newsapi.org/v2/top-headlines?country=us&apiKey=${APIKey}`;
+        axios.get(URL)
+          .then((newsResult) => {
+            let mapResult = newsResult.data.articles.map((item) => {
+              return new News(item.title, item.description, item.url, item.urlToImage);
+            });
+            res.send(mapResult);
+          })
+          .catch((err) => {
+            console.log("sorry", err);
+            res.status(500).send(err);
+          })
+      }
+    
+      catch (error) {
+        errorHandler(error, req, res);
+      }
+}
+
+function getAllCommentHandler(req, res) {
+    const id = req.params.id;
+    const sql = `SELECT Comments.userId,
+                        Comments.Content,
+                        Comments.Created_at
+                FROM Comments
+                INNER JOIN Users ON Comments.userId = Users.userId
+                WHERE Comments.postId=${id}
+                ORDER BY Comments.Created_at DESC;`;
+    client.query(sql)
+        .then((data) => {
+            res.send(data.rows);
+
+        })
+        .catch((err) => {
+            errorHandler(err, req, res);
+        })
+
+}
+
+function saveCommentHandler(req, res) {
+    const newComment = req.body;
+    const sql = `INSERT INTO Comments (postId, userId ,Content) VALUES ($1,$2,$3) RETURNING *;`;
+    const values = [newComment.postId, newComment.userId, newComment.Content];
+    client.query(sql, values)
+        .then((data) => {
+            res.send("your data was added !");
+        })
+        .catch((err) => {
+            errorHandler(err, req, res);
+        })
+    // res.send("Hello from the home route");
+}
 
 function getProfileByIdHandler(req, res) {
     const id = req.params.id;
@@ -289,6 +377,28 @@ function getProfileByIdHandler(req, res) {
     }
 
 }
+
+
+function deleteCommentHandler(req, res) {
+    const id = req.params.id;
+    if (!isNaN(id)) {
+        const sql = `DELETE FROM Comments WHERE commentId=${id}`;
+        client.query(sql)
+            .then((data) => {
+                res.send("your data was deleted successful");
+            })
+            .catch((err) => {
+                errorHandler(err, req, res);
+            })
+    }
+    else {
+        res.send("Id Must Be Numaric");
+    }
+
+}
+
+
+
 function updateProfilHandler(req, res) {
     const id = req.params.id;
     if (!isNaN(id)) {
@@ -310,6 +420,7 @@ function updateProfilHandler(req, res) {
     }
 }
 
+
 function getUserIdByEmailHandler(req, res) {
     const email = req.body.email;
     const sql = `SELECT userId FROM Users WHERE email = '${email}'`;
@@ -321,7 +432,6 @@ function getUserIdByEmailHandler(req, res) {
             errorHandler(err, req, res);
         })
 }
-
 
 server.get('/generateByAi', async function(req, res) {
     const prompt = `create for me blog post about ${req.body.title} and do not start with Sure`;
@@ -335,7 +445,6 @@ server.get('/generateByAi', async function(req, res) {
         errorHandler(err, req, res);
     });
 });
-
 
 // 404 errors
 server.get('*', (req, res) => {
