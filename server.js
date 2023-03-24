@@ -18,13 +18,6 @@ const server = express();
 //server open for all clients requests
 server.use(cors());
 
-var bodyParser = require('body-parser')
-// parse application/x-www-form-urlencoded
-server.use(bodyParser.urlencoded({ extended: false }))
-// parse application/json
-server.use(bodyParser.json())
-
-
 // Load the environment variables into your Node.js
 require('dotenv').config();
 
@@ -42,29 +35,21 @@ server.use(bodyParser.json())
 //Routes
 server.get('/', startHandler)
 server.get('/home', homeHandler)
-
 server.get('/getUserPosts/:id', getUserPostsHandler)
 server.get('/getPostById/:id', getPostByIdHandler)
-
 server.post('/addUsers', addUsersHandler)
 // server.get('/getUsers', getUsersHandler)
 server.post('/addPost', savePostHandler)
 server.get('/getAllPosts', getAllPostsHandler)
 server.put('/updateComment/:id',updateCommentId)
-
-
+server.get('/getAllComment/:id', getAllCommentHandler)
+server.post('/saveComment', saveCommentHandler)
+server.delete('/deleteComment/:id', deleteCommentHandler)
 //API Route
 server.get('/topHeadlines',topHeadlinesAPIHandler)
 
-// NewsAPI  constructor 
 
-function News (title,description,url,urlToImage)
-{
-this.title = title ;
-this.description = description ;
-this.url = url ;
-this.urlToImage = urlToImage ;
-}
+
 
 
 // Functions Handlers
@@ -89,8 +74,6 @@ function addUsersHandler(req, res) {
             res.send('error');
         });
 }
-
-
 
 
 // function getUsersHandler(req, res) {
@@ -181,6 +164,16 @@ function getPostByIdHandler(req, res) {
 
 }
 
+// NewsAPI  constructor 
+
+function News (title,description,url,urlToImage)
+{
+this.title = title ;
+this.description = description ;
+this.url = url ;
+this.urlToImage = urlToImage ;
+}
+
 function updateCommentId(req, res) {
     const id = req.params.id;
     const comm = req.body.Content;
@@ -196,6 +189,7 @@ function updateCommentId(req, res) {
         errorHandler(err, req, res);
       });
   }
+
 
   function topHeadlinesAPIHandler (req,res){
 
@@ -220,6 +214,58 @@ function updateCommentId(req, res) {
       }
 }
 
+
+function getAllCommentHandler(req, res) {
+    const id = req.params.id;
+    const sql = `SELECT Comments.userId,
+                        Comments.Content,
+                        Comments.Created_at
+                FROM Comments
+                INNER JOIN Users ON Comments.userId = Users.userId
+                WHERE Comments.postId=${id}
+                ORDER BY Comments.Created_at DESC;`;
+    client.query(sql)
+        .then((data) => {
+            res.send(data.rows);
+
+        })
+        .catch((err) => {
+            errorHandler(err, req, res);
+        })
+
+}
+
+function saveCommentHandler(req, res) {
+    const newComment = req.body;
+    const sql = `INSERT INTO Comments (postId, userId ,Content) VALUES ($1,$2,$3) RETURNING *;`;
+    const values = [newComment.postId, newComment.userId, newComment.Content];
+    client.query(sql, values)
+        .then((data) => {
+            res.send("your data was added !");
+        })
+        .catch((err) => {
+            errorHandler(err, req, res);
+        })
+    // res.send("Hello from the home route");
+}
+
+function deleteCommentHandler(req, res) {
+    const id = req.params.id;
+    if (!isNaN(id)) {
+        const sql = `DELETE FROM Comments WHERE commentId=${id}`;
+        client.query(sql)
+            .then((data) => {
+                res.send("your data was deleted successful");
+            })
+            .catch((err) => {
+                errorHandler(err, req, res);
+            })
+    }
+    else {
+        res.send("Id Must Be Numaric");
+    }
+
+}
 
 // 404 errors
 server.get('*', (req, res) => {
