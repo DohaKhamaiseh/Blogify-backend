@@ -18,6 +18,7 @@ To begin working on the backend side of a project, follow these steps:
   npm i pg
   npm install axios
   npm install body-parser --save
+  npm install openai
   ````
 
 * Create a .env file in the root directory run this commands
@@ -31,6 +32,7 @@ To begin working on the backend side of a project, follow these steps:
   ````
   PORT=3000
   DATABASE_URL=postgres://localhost:5432/blogify
+  OPENAI_API_KEY="INSERT YOUR OPENAI API KEY HERE"
   ````
 
 * prepare the Database server using this command :
