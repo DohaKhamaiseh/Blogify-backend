@@ -19,12 +19,6 @@ const server = express();
 //server open for all clients requests
 server.use(cors());
 
-var bodyParser = require('body-parser')
-// parse application/x-www-form-urlencoded
-server.use(bodyParser.urlencoded({ extended: false }))
-// parse application/json
-server.use(bodyParser.json())
-
 
 // Load the environment variables into your Node.js
 require('dotenv').config();
@@ -65,6 +59,8 @@ server.post('/decreespostlikes/:id', decreesLikesHandler)
 server.get('/getProfileById/:id', getProfileByIdHandler)
 server.put('/updateprofil/:id', updateProfilHandler)
 server.get('/getUserIdByEmail', getUserIdByEmailHandler)
+
+
 
 // Functions Handlers
 
