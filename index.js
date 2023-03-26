@@ -134,7 +134,7 @@ function savePostHandler(req, res) {
 // (GET) /getAllPosts: get list of all blog posts created by all users. (Database Join between Posts and User )
 //  (postId ,userId ,imageURL ,title ,content ,numberOfLikes,Created_at , userFullName , imageURL AS userImageURL) sorted by created_at
 function getAllPostsHandler(req, res) {
-    const sql = 'SELECT Posts.postId ,Users.userId ,Users.userFullName, Users.imageURL , Posts.postId  , Posts.imageURL , Posts.title , Posts.content  , Posts.numberOfLikes , Posts.Created_at  FROM Users INNER JOIN Posts ON Users.userId=Posts.userId  ORDER BY Created_at DESC ;'
+    const sql = 'SELECT Posts.postId ,Users.userId ,Users.userFullName, Users.imageURL AS userImageURL , Posts.postId  , Posts.imageURL , Posts.title , Posts.content  , Posts.numberOfLikes , Posts.Created_at  FROM Users INNER JOIN Posts ON Users.userId=Posts.userId  ORDER BY Created_at DESC ;'
     client.query(sql)
         .then((data) => {
             res.send(data.rows);
