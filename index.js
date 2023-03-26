@@ -280,7 +280,7 @@ function updateCommentIdHandler(req, res) {
     const id = req.params.id;
     if (!isNaN(id)) {
         const comm = req.body.Content;
-        const sql = `UPDATE Comments SET Created_at = CURRENT_TIMESTAMP, Content = $1 WHERE commentId = $2 RETURNING *;`;
+        const sql = `UPDATE Comments SET  Content = $1 WHERE commentId = $2 RETURNING *;`;
         const values = [comm, id];
         client.query(sql, values)
             .then((data) => {
