@@ -48,7 +48,7 @@ server.get('/home', homeHandler)
 server.get('/getUserPosts/:id', getUserPostsHandler)
 server.get('/getPostById/:id', getPostByIdHandler)
 server.post('/addUsers', addUsersHandler)
-// server.get('/getUsers', getUsersHandler)
+server.get('/getUsers', getUsersHandler)
 server.post('/addPost', savePostHandler)
 server.get('/getAllPosts', getAllPostsHandler)
 server.put('/updateComment/:id', updateCommentIdHandler)
@@ -63,7 +63,7 @@ server.post('/increasepostlikes/:id', increaseLikesHandler)
 server.post('/decreespostlikes/:id', decreesLikesHandler)
 server.get('/getProfileById/:id', getProfileByIdHandler)
 server.put('/updateprofil/:id', updateProfilHandler)
-server.get('/getUserIdByEmail', getUserIdByEmailHandler)
+server.post('/getUserIdByEmail', getUserIdByEmailHandler)
 // server.get('/generateByAi',) exist at the bottom
 
 
@@ -105,16 +105,16 @@ function addUsersHandler(req, res) {
 
 
 
-// function getUsersHandler(req, res) {
-//     const sql = `SELECT * FROM Users;`
-//     client.query(sql)
-//         .then((data) => {
-//             res.send(data.rows);
-//         })
-//         .catch(error => {
-//             res.send('error');
-//         });
-// }
+function getUsersHandler(req, res) {
+    const sql = `SELECT userid FROM Users;`
+    client.query(sql)
+        .then((data) => {
+            res.send(data.rows);
+        })
+        .catch(error => {
+            res.send('error');
+        });
+}
 
 function savePostHandler(req, res) {
     const Post = req.body;
