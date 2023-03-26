@@ -80,18 +80,18 @@ function homeHandler(req, res) {
 
 function addUsersHandler(req, res) {
     const user = req.body;
-    const checkEmailSql = `SELECT userId FROM Users WHERE email=$1;`;
+    const checkEmailSql = `SELECT * FROM Users WHERE email=$1;`;
     const checkEmailValues = [user.email];
     client.query(checkEmailSql, checkEmailValues)
         .then((result) => {
             if (result.rowCount > 0) {
-                res.status(400).send("Email already exists");
+                res.status(200).send(result.rows);
             } else {
                 const sql = `INSERT INTO Users (userFullName, email) VALUES ($1, $2) RETURNING *;`;
                 const values = [user.userFullName, user.email];
                 client.query(sql, values)
                     .then((data) => {
-                        res.send("Users Saved successfully");
+                        res.send(data.rows);
                     })
                     .catch(error => {
                         errorHandler(error, req, res);
