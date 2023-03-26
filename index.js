@@ -106,7 +106,7 @@ function addUsersHandler(req, res) {
 
 
 function getUsersHandler(req, res) {
-    const sql = `SELECT userid FROM Users;`
+    const sql = `SELECT userid,email FROM Users;`
     client.query(sql)
         .then((data) => {
             res.send(data.rows);
