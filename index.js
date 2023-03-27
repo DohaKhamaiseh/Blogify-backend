@@ -435,7 +435,7 @@ function getUserIdByEmailHandler(req, res) {
 }
 
 server.get('/generateByAi', async function (req, res) {
-    const prompt = `create for me blog post about ${req.body.title} and do not start with Sure`;
+    const prompt = `create for me blog post about ${req.query.title} and do not start with Sure`;
     openai.createCompletion({
         model: "text-davinci-003",
         prompt: prompt,
