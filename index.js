@@ -402,6 +402,7 @@ function deleteCommentHandler(req, res) {
 
 
 function updateProfilHandler(req, res) {
+    
     const id = req.params.id;
     if (!isNaN(id)) {
         const User = req.body;
