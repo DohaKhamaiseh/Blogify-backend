@@ -406,7 +406,16 @@ function updateProfilHandler(req, res) {
     const id = req.params.id;
     if (!isNaN(id)) {
         const User = req.body;
-        const sql = `UPDATE Users SET userFullName =$1 , dateOfBirth  =$2 , imageURL =$3,bio=$4 WHERE userId = ${id} RETURNING *;`
+        const sql = `UPDATE Users SET userFullName =$1 ,
+                                      dateOfBirth  =TO_DATE($2, 'MM/DD/YYYY'),
+                                       imageURL =$3,
+                                       bio=$4 
+                    WHERE userId = ${id} RETURNING
+                    TO_CHAR(Users.dateOfBirth, 'MM/DD/YYYY') as dateOfBirth,
+                    Users.userFullName,
+                    Users.email ,
+                    Users.imageURL AS userImageURL ,
+                    Users.bio ;`
         const values = [User.userFullName, User.dateOfBirth, User.imageURL, User.bio];
 
         client.query(sql, values)
