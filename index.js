@@ -231,16 +231,15 @@ function deletePostHandler(req, res) {
 function increaseLikesHandler(req, res) {
     const id = req.params.id;
     if (!isNaN(id)) {
-        const sql = `UPDATE posts SET numberOfLikes = numberOfLikes + 1 WHERE postId = ${id};`
+        const sql = `UPDATE posts SET numberOfLikes = numberOfLikes + 1 WHERE postId =${id} RETURNING *`
         client.query(sql)
             .then((data) => {
-                res.send("increased successfully");
+                res.status(200).send(data.rows);
+
             })
             .catch(error => {
                 errorHandler(error, req, res);
             });
-
-
     }
     else {
         res.send("Id Must Be Numaric");
@@ -251,16 +250,15 @@ function increaseLikesHandler(req, res) {
 function decreesLikesHandler(req, res) {
     const id = req.params.id;
     if (!isNaN(id)) {
-        const sql = `UPDATE posts SET numberOfLikes = numberOfLikes - 1 WHERE postId = ${id};`
+        const sql = `UPDATE posts SET numberOfLikes = numberOfLikes -1 WHERE postId =${id} RETURNING *`
         client.query(sql)
             .then((data) => {
-                res.send("decreesed successfully");
+                res.status(200).send(data.rows);
+
             })
             .catch(error => {
                 errorHandler(error, req, res);
             });
-
-
     }
     else {
         res.send("Id Must Be Numaric");
