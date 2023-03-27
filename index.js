@@ -359,7 +359,7 @@ function getProfileByIdHandler(req, res) {
     const id = req.params.id;
     if (!isNaN(id)) {
         const sql = `SELECT Users.userFullName  ,
-                        Users.dateOfBirth  ,
+                        TO_CHAR(dateOfBirth, 'MM/DD/YYYY') as dateOfBirth ,
                         Users.email ,
                         Users.imageURL AS userImageURL ,
                         Users.bio 
