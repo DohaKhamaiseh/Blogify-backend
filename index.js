@@ -359,7 +359,7 @@ function getProfileByIdHandler(req, res) {
     const id = req.params.id;
     if (!isNaN(id)) {
         const sql = `SELECT Users.userFullName  ,
-                        TO_CHAR(dateOfBirth, 'MM/DD/YYYY') as dateOfBirth ,
+                        TO_CHAR(dateOfBirth, 'YYYY/MM/DD') as dateOfBirth ,
                         Users.email ,
                         Users.imageURL AS userImageURL ,
                         Users.bio 
@@ -407,7 +407,7 @@ function updateProfilHandler(req, res) {
     if (!isNaN(id)) {
         const User = req.body;
         const sql = `UPDATE Users SET userFullName =$1 ,
-                                      dateOfBirth  =TO_DATE($2, 'MM/DD/YYYY'),
+                                      dateOfBirth  =TO_DATE($2, 'YYYY/MM/DD'),
                                        imageURL =$3,
                                        bio=$4 
                     WHERE userId = ${id} RETURNING
