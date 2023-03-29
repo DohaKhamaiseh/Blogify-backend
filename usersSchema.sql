@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS Users (
     userFullName VARCHAR(255) NOT NULL,
     dateOfBirth DATE,
     email VARCHAR(255) CONSTRAINT Uniqe_email UNIQUE NOT NULL,
-    imageURL VARCHAR(255) DEFAULT 'https://img.freepik.com/premium-vector/anonymous-user-circle-icon-vector-illustration-flat-style-with-long-shadow_520826-1931.jpg' ,
+    imageURL TEXT DEFAULT 'https://img.freepik.com/premium-vector/anonymous-user-circle-icon-vector-illustration-flat-style-with-long-shadow_520826-1931.jpg' ,
     bio TEXT,
     PRIMARY KEY(userId)
 );
