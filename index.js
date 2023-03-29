@@ -293,28 +293,28 @@ function updateCommentIdHandler(req, res) {
     }
 }
 
-function topHeadlinesAPIHandler(req, res) {
+// function topHeadlinesAPIHandler(req, res) {
 
-    try {
-        const APIKey = process.env.NEWS_API_KEY;
-        const URL = `https://newsapi.org/v2/top-headlines?country=us&apiKey=${APIKey}`;
-        axios.get(URL)
-            .then((newsResult) => {
-                let mapResult = newsResult.data.articles.map((item) => {
-                    return new News(item.title, item.description, item.url, item.urlToImage);
-                });
-                res.send(mapResult);
-            })
-            .catch((err) => {
-                console.log("sorry", err);
-                res.status(500).send(err);
-            })
-    }
+//     try {
+//         const APIKey = process.env.NEWS_API_KEY;
+//         const URL = `https://newsapi.org/v2/top-headlines?country=us&apiKey=${APIKey}`;
+//         axios.get(URL)
+//             .then((newsResult) => {
+//                 let mapResult = newsResult.data.articles.map((item) => {
+//                     return new News(item.title, item.description, item.url, item.urlToImage);
+//                 });
+//                 res.send(mapResult);
+//             })
+//             .catch((err) => {
+//                 console.log("sorry", err);
+//                 res.status(500).send(err);
+//             })
+//     }
 
-    catch (error) {
-        errorHandler(error, req, res);
-    }
-}
+//     catch (error) {
+//         errorHandler(error, req, res);
+//     }
+// }
 
 
 function getAllCommentHandler(req, res) {
