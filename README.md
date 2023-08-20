@@ -1,102 +1,23 @@
-To begin working on the backend side of a project, follow these steps:
+# Blogify-Backend
 
-* go to a directory where you want to save the Project and run these commands :
+**This is the backend for Blogify website which is  a platform where users can post blogs with pictures, titles, and content. What makes Blogify unique is that users can optionally use GPT3 to generate content for their blog posts. This means that users can save time and effort by letting GPT3 write their content for them.**
 
-  ````
-  mkdir BlogPost
-  cd BlogPost
-  git clone git@github.com:Blog-Post-Group-1/blog-post-back-end.git
-  cd blog-post-back-end
-  ````
+**We used ExpressJS, NodeJS, Axios, Postgres, and CORS. This allows Blogify to handle user authentication, blog post creation and storage, and communication with external APIs.**
 
-* run these commands to install librarys :
+## [Click to see Blogify ^_^](https://main--chipper-platypus-a810ef.netlify.app/)
 
-  ````
-  npm install express cors
-  npm install -g nodemon
-  npm install dotenv
-  npm i pg
-  npm install axios
-  npm install body-parser --save
-  npm install openai
-  ````
+## The external APIs that we used:
 
-* Create a .env file in the root directory run this commands
+ * https://platform.openai.com/overview
 
-  ````
-  touch .env
-  ````
+ *  https://newsapi.org/
 
-* add this to .env file
 
-  ````
-  PORT=3000
-  DATABASE_URL=postgres://localhost:5432/blogify
-  OPENAI_API_KEY="INSERT YOUR OPENAI API KEY HERE"
-  NEWS_API_KEY="INSERT YOUR API KEY HERE"
-  ````
+##  [The Front-end Repo](https://github.com/DohaKhamaiseh/Blogify-Front-end)
 
-* prepare the Database server using this command :
-
-  ````
-  sqlstart 
-  ````
-
-  ````
-  psql
-  ````
-
-  ````
-  CREATE DATABASE blogify;
-  ````
-
-  ````
-  \c blogify
-  ````
-
-  ````
-  \q
-  ````
-
-  ````
-  psql -d blogify -f usersSchema.sql
-  psql -d blogify -f postsSchema.sql
-  psql -d blogify -f commentsSchema.sql
-  ````
-
-* check if the 3 tables is created :
-
-  ````
-  psql
-  ````
-
-  ````
-  \c blogify
-  ````
-
-  ````
-  \dt
-  ````
-
-  ````
-  \q
-  ````
-
-* start the server
-
-  ````
-   nodemon
-  ````
-
-* Test The Routes
-
-  ````
-  http://localhost:3000/
-  http://localhost:3000/home 
-  ````
-
-* to stop the Database server using this command :
-
-  ````
-    sqlstop
-  ````
+## The Wireframes:
+![Home](./Assets/HomePage.jpg)
+![Profile](./Assets/Profile.jpg)
+![Starting](./Assets/StartingPage.jpg)
+![Post](./Assets/ThePost.jpg)
+![Aboutus](./Assets/AboutUs.jpg)
